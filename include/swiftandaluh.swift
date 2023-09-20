@@ -293,6 +293,19 @@ private func uniffiCheckCallStatus(
 // Public interface members begin here.
 
 
+fileprivate struct FfiConverterUInt8: FfiConverterPrimitive {
+    typealias FfiType = UInt8
+    typealias SwiftType = UInt8
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> UInt8 {
+        return try lift(readInt(&buf))
+    }
+
+    public static func write(_ value: UInt8, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
 fileprivate struct FfiConverterString: FfiConverter {
     typealias SwiftType = String
     typealias FfiType = RustBuffer
@@ -396,6 +409,69 @@ fileprivate func uniffiInitForeignExecutor() {
     uniffi_foreign_executor_callback_set(uniffiForeignExecutorCallback)
 }
 
+
+public struct Response {
+    public var input: String
+    public var output: String
+    public var version: UInt8
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(input: String, output: String, version: UInt8) {
+        self.input = input
+        self.output = output
+        self.version = version
+    }
+}
+
+
+extension Response: Equatable, Hashable {
+    public static func ==(lhs: Response, rhs: Response) -> Bool {
+        if lhs.input != rhs.input {
+            return false
+        }
+        if lhs.output != rhs.output {
+            return false
+        }
+        if lhs.version != rhs.version {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(input)
+        hasher.combine(output)
+        hasher.combine(version)
+    }
+}
+
+
+public struct FfiConverterTypeResponse: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Response {
+        return try Response(
+            input: FfiConverterString.read(from: &buf), 
+            output: FfiConverterString.read(from: &buf), 
+            version: FfiConverterUInt8.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: Response, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.input, into: &buf)
+        FfiConverterString.write(value.output, into: &buf)
+        FfiConverterUInt8.write(value.version, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeResponse_lift(_ buf: RustBuffer) throws -> Response {
+    return try FfiConverterTypeResponse.lift(buf)
+}
+
+public func FfiConverterTypeResponse_lower(_ value: Response) -> RustBuffer {
+    return FfiConverterTypeResponse.lower(value)
+}
+
 fileprivate struct FfiConverterOptionString: FfiConverterRustBuffer {
     typealias SwiftType = String?
 
@@ -412,6 +488,27 @@ fileprivate struct FfiConverterOptionString: FfiConverterRustBuffer {
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterString.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionTypeResponse: FfiConverterRustBuffer {
+    typealias SwiftType = Response?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeResponse.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeResponse.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
@@ -436,9 +533,26 @@ fileprivate func uniffiFutureCallbackHandlerOptionString(
         continuation.pointee.resume(throwing: error)
     }
 }
+fileprivate func uniffiFutureCallbackHandlerOptionTypeResponse(
+    rawContinutation: UnsafeRawPointer,
+    returnValue: RustBuffer,
+    callStatus: RustCallStatus) {
 
-public func expensive(input: String) async  -> String? {
-    var continuation: CheckedContinuation<String?, Error>? = nil
+    let continuation = rawContinutation.bindMemory(
+        to: CheckedContinuation<Response?, Error>.self,
+        capacity: 1
+    )
+
+    do {
+        try uniffiCheckCallStatus(callStatus: callStatus, errorHandler: nil)
+        continuation.pointee.resume(returning: try FfiConverterOptionTypeResponse.lift(returnValue))
+    } catch let error {
+        continuation.pointee.resume(throwing: error)
+    }
+}
+
+public func expensive(input: String) async  -> Response? {
+    var continuation: CheckedContinuation<Response?, Error>? = nil
     // Suspend the function and call the scaffolding function, passing it a callback handler from
     // `AsyncTypes.swift`
     //
@@ -451,7 +565,7 @@ public func expensive(input: String) async  -> String? {
                 
         FfiConverterString.lower(input),
                 FfiConverterForeignExecutor.lower(UniFfiForeignExecutor()),
-                uniffiFutureCallbackHandlerOptionString,
+                uniffiFutureCallbackHandlerOptionTypeResponse,
                 &continuation,
                 $0
             )
@@ -485,7 +599,7 @@ private var initializationResult: InitializationResult {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
-    if (uniffi_swiftandaluh_checksum_func_expensive() != 43911) {
+    if (uniffi_swiftandaluh_checksum_func_expensive() != 13153) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_swiftandaluh_checksum_func_transform() != 45650) {

@@ -11,8 +11,8 @@
 		4D2B0B1A2ABAFFB000EC181E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D2B0B192ABAFFB000EC181E /* ContentView.swift */; };
 		4D2B0B1C2ABAFFB300EC181E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4D2B0B1B2ABAFFB300EC181E /* Assets.xcassets */; };
 		4D2B0B1F2ABAFFB300EC181E /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4D2B0B1E2ABAFFB300EC181E /* Preview Assets.xcassets */; };
-		4D2B0B262ABB019600EC181E /* swiftandaluhFFI.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D2B0B252ABB019600EC181E /* swiftandaluhFFI.xcframework */; };
 		4D2B0B282ABB038700EC181E /* swiftandaluh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D2B0B272ABB038700EC181E /* swiftandaluh.swift */; };
+		4D2B0B2A2ABB24BD00EC181E /* swiftandaluhFFI.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D2B0B292ABB24BD00EC181E /* swiftandaluhFFI.xcframework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -21,8 +21,8 @@
 		4D2B0B192ABAFFB000EC181E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		4D2B0B1B2ABAFFB300EC181E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4D2B0B1E2ABAFFB300EC181E /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		4D2B0B252ABB019600EC181E /* swiftandaluhFFI.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = swiftandaluhFFI.xcframework; path = ../target/swiftandaluhFFI.xcframework; sourceTree = "<group>"; };
 		4D2B0B272ABB038700EC181E /* swiftandaluh.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = swiftandaluh.swift; path = ../../include/swiftandaluh.swift; sourceTree = "<group>"; };
+		4D2B0B292ABB24BD00EC181E /* swiftandaluhFFI.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = swiftandaluhFFI.xcframework; path = ../target/swiftandaluhFFI.xcframework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -30,7 +30,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4D2B0B262ABB019600EC181E /* swiftandaluhFFI.xcframework in Frameworks */,
+				4D2B0B2A2ABB24BD00EC181E /* swiftandaluhFFI.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -40,7 +40,7 @@
 		4D2B0B0B2ABAFFB000EC181E = {
 			isa = PBXGroup;
 			children = (
-				4D2B0B252ABB019600EC181E /* swiftandaluhFFI.xcframework */,
+				4D2B0B292ABB24BD00EC181E /* swiftandaluhFFI.xcframework */,
 				4D2B0B162ABAFFB000EC181E /* Andaluh */,
 				4D2B0B152ABAFFB000EC181E /* Products */,
 			);

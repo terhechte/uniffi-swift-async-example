@@ -14,8 +14,9 @@ struct ContentView: View {
         .padding()
         .onAppear {
             Task {
-                let o = await expensive(input:"Estoy estudiante en Malaga")
-                self.output = o
+                if let o = await expensive(input:"Estoy estudiante en Malaga") {
+                    self.output = o.output
+                }
             }
         }
     }
