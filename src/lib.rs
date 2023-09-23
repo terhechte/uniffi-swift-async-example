@@ -1,5 +1,5 @@
 use async_std::future::{pending, timeout};
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
 pub mod types;
 use types::Response;
@@ -20,6 +20,21 @@ pub async fn expensive(input: String) -> Option<Response> {
         output,
         version: 42,
     })
+}
+
+#[derive(uniffi::Object)]
+pub struct TicketHandler {}
+
+#[uniffi::export]
+impl TicketHandler {
+    #[uniffi::constructor]
+    pub fn new() -> Arc<Self> {
+        Arc::new(TicketHandler {})
+    }
+
+    pub async fn get_tickets(&self) -> Vec<String> {
+        Vec::new()
+    }
 }
 
 uniffi::setup_scaffolding!();

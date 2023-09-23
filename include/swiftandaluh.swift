@@ -344,6 +344,100 @@ fileprivate struct FfiConverterString: FfiConverter {
     }
 }
 
+
+public protocol TicketHandlerProtocol {
+    func getTickets() async  -> [String]
+    
+}
+
+public class TicketHandler: TicketHandlerProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+    public convenience init()  {
+        self.init(unsafeFromRawPointer: try! rustCall() {
+    uniffi_swiftandaluh_fn_constructor_tickethandler_new($0)
+})
+    }
+
+    deinit {
+        try! rustCall { uniffi_swiftandaluh_fn_free_tickethandler(pointer, $0) }
+    }
+
+    
+
+    
+    
+
+    public func getTickets() async  -> [String] {
+        // Suspend the function and call the scaffolding function, passing it a callback handler from
+        // `AsyncTypes.swift`
+        //
+        // Make sure to hold on to a reference to the continuation in the top-level scope so that
+        // it's not freed before the callback is invoked.
+        var continuation: CheckedContinuation<[String], Error>? = nil
+        return try!  await withCheckedThrowingContinuation {
+            continuation = $0
+            try! rustCall() {
+                uniffi_swiftandaluh_fn_method_tickethandler_get_tickets(
+                    self.pointer,
+                    
+                    FfiConverterForeignExecutor.lower(UniFfiForeignExecutor()),
+                    uniffiFutureCallbackHandlerSequenceString,
+                    &continuation,
+                    $0
+                )
+            }
+        }
+    }
+
+    
+}
+
+public struct FfiConverterTypeTicketHandler: FfiConverter {
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = TicketHandler
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> TicketHandler {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: TicketHandler, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> TicketHandler {
+        return TicketHandler(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: TicketHandler) -> UnsafeMutableRawPointer {
+        return value.pointer
+    }
+}
+
+
+public func FfiConverterTypeTicketHandler_lift(_ pointer: UnsafeMutableRawPointer) throws -> TicketHandler {
+    return try FfiConverterTypeTicketHandler.lift(pointer)
+}
+
+public func FfiConverterTypeTicketHandler_lower(_ value: TicketHandler) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeTicketHandler.lower(value)
+}
+
 private let UNIFFI_RUST_TASK_CALLBACK_SUCCESS: Int8 = 0
 private let UNIFFI_RUST_TASK_CALLBACK_CANCELLED: Int8 = 1
 private let UNIFFI_FOREIGN_EXECUTOR_CALLBACK_SUCCESS: Int8 = 0
@@ -512,10 +606,49 @@ fileprivate struct FfiConverterOptionTypeResponse: FfiConverterRustBuffer {
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
+}
+
+fileprivate struct FfiConverterSequenceString: FfiConverterRustBuffer {
+    typealias SwiftType = [String]
+
+    public static func write(_ value: [String], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterString.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [String] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [String]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterString.read(from: &buf))
+        }
+        return seq
+    }
 }// Callbacks for async functions
 
 // Callback handlers for an async calls.  These are invoked by Rust when the future is ready.  They
 // lift the return value or error and resume the suspended function.
+fileprivate func uniffiFutureCallbackHandlerTypeTicketHandler(
+    rawContinutation: UnsafeRawPointer,
+    returnValue: UnsafeMutableRawPointer,
+    callStatus: RustCallStatus) {
+
+    let continuation = rawContinutation.bindMemory(
+        to: CheckedContinuation<TicketHandler, Error>.self,
+        capacity: 1
+    )
+
+    do {
+        try uniffiCheckCallStatus(callStatus: callStatus, errorHandler: nil)
+        continuation.pointee.resume(returning: try FfiConverterTypeTicketHandler.lift(returnValue))
+    } catch let error {
+        continuation.pointee.resume(throwing: error)
+    }
+}
 fileprivate func uniffiFutureCallbackHandlerOptionString(
     rawContinutation: UnsafeRawPointer,
     returnValue: RustBuffer,
@@ -546,6 +679,23 @@ fileprivate func uniffiFutureCallbackHandlerOptionTypeResponse(
     do {
         try uniffiCheckCallStatus(callStatus: callStatus, errorHandler: nil)
         continuation.pointee.resume(returning: try FfiConverterOptionTypeResponse.lift(returnValue))
+    } catch let error {
+        continuation.pointee.resume(throwing: error)
+    }
+}
+fileprivate func uniffiFutureCallbackHandlerSequenceString(
+    rawContinutation: UnsafeRawPointer,
+    returnValue: RustBuffer,
+    callStatus: RustCallStatus) {
+
+    let continuation = rawContinutation.bindMemory(
+        to: CheckedContinuation<[String], Error>.self,
+        capacity: 1
+    )
+
+    do {
+        try uniffiCheckCallStatus(callStatus: callStatus, errorHandler: nil)
+        continuation.pointee.resume(returning: try FfiConverterSequenceString.lift(returnValue))
     } catch let error {
         continuation.pointee.resume(throwing: error)
     }
@@ -603,6 +753,12 @@ private var initializationResult: InitializationResult {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_swiftandaluh_checksum_func_transform() != 45650) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_swiftandaluh_checksum_method_tickethandler_get_tickets() != 36618) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_swiftandaluh_checksum_constructor_tickethandler_new() != 1661) {
         return InitializationResult.apiChecksumMismatch
     }
 

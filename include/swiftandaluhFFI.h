@@ -60,9 +60,17 @@ typedef struct RustCallStatus {
 #endif // def UNIFFI_SHARED_H
 
 // Callbacks for UniFFI Futures
+typedef void (*UniFfiFutureCallbackUnsafeMutableRawPointer)(const void * _Nonnull, void*_Nonnull, RustCallStatus);
 typedef void (*UniFfiFutureCallbackRustBuffer)(const void * _Nonnull, RustBuffer, RustCallStatus);
 
 // Scaffolding functions
+void uniffi_swiftandaluh_fn_free_tickethandler(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+void*_Nonnull uniffi_swiftandaluh_fn_constructor_tickethandler_new(RustCallStatus *_Nonnull out_status
+    
+);
+void uniffi_swiftandaluh_fn_method_tickethandler_get_tickets(void*_Nonnull ptr, size_t uniffi_executor, UniFfiFutureCallbackRustBuffer _Nonnull uniffi_callback, void* _Nonnull uniffi_callback_data, RustCallStatus *_Nonnull out_status
+);
 void uniffi_swiftandaluh_fn_func_expensive(RustBuffer input, size_t uniffi_executor, UniFfiFutureCallbackRustBuffer _Nonnull uniffi_callback, void* _Nonnull uniffi_callback_data, RustCallStatus *_Nonnull out_status
 );
 RustBuffer uniffi_swiftandaluh_fn_func_transform(RustBuffer input, RustCallStatus *_Nonnull out_status
@@ -79,6 +87,12 @@ uint16_t uniffi_swiftandaluh_checksum_func_expensive(void
     
 );
 uint16_t uniffi_swiftandaluh_checksum_func_transform(void
+    
+);
+uint16_t uniffi_swiftandaluh_checksum_method_tickethandler_get_tickets(void
+    
+);
+uint16_t uniffi_swiftandaluh_checksum_constructor_tickethandler_new(void
     
 );
 void uniffi_foreign_executor_callback_set(UniFfiForeignExecutorCallback _Nonnull callback
